@@ -1,11 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Article Scraper",
+  "name": "小说爬取工具",
   "version": "1.0",
-  "description": "爬取网页文章内容",
   "permissions": [
     "activeTab",
     "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"

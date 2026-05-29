@@ -30,8 +30,6 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
 
     result.textContent =
       `标题：${data.title}\n页数：${data.pageCount}\n\n${data.content}`;
-
-    window.currentArticle = data;
   } catch (err) {
     result.textContent = '错误：' + err.message;
   }

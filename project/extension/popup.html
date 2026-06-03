@@ -3,19 +3,27 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>文章爬取器</title>
+  <title>小说爬取器</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <h3>爬取当前页面文章</h3>
+  <h3>爬取小说或当前章节</h3>
   <div class="toolbar">
-    <button id="scrapeBtn">爬取文章</button>
+    <button id="scrapeBtn">开始爬取</button>
     <button id="downloadBtn" disabled>保存 TXT</button>
     <label class="save-option">
       <input id="chooseSavePath" type="checkbox" checked>
       选择保存位置
     </label>
+  </div>
+  <div id="progressPanel" class="progress-panel" hidden>
+    <div class="progress-row">
+      <span id="progressText">准备中...</span>
+      <span id="progressPercent">0%</span>
+    </div>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <div id="progressDetail" class="progress-detail"></div>
   </div>
   <pre id="result"></pre>
 

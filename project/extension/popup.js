@@ -128,12 +128,13 @@ function updateProgress(progress) {
   const max = Number(progress.max || 0);
   const done = Number(progress.done || 0);
   const currentChapterNumber = Number(progress.currentChapterNumber || 0);
-  const percent = max ? Math.min(Math.round((done / max) * 100), 100) : 0;
+  const current = currentChapterNumber || done;
+  const percent = max ? Math.min(Math.round((current / max) * 100), 100) : 0;
 
   progressBar.value = percent;
   progressPercent.textContent = `${percent}%`;
   progressText.textContent = max
-    ? `${progress.status || '爬取中'}：已抓取 ${done}/${max} 章`
+    ? `${progress.status || '爬取中'}：当前第 ${current}/${max} 章`
     : `${progress.status || '爬取中'}：已抓取 ${done} 章`;
 
   const detail = [];
@@ -142,8 +143,8 @@ function updateProgress(progress) {
     detail.push(progress.currentTitle);
   }
 
-  if (currentChapterNumber) {
-    detail.push(`最后到第 ${currentChapterNumber} 章`);
+  if (done) {
+    detail.push(`已保存 ${done} 章`);
   }
 
   if (progress.pageCount) {
@@ -276,6 +277,8 @@ async function scrapePage(runId, chapterLimit) {
     let currentUrl = startReadUrl;
     let lastChapterNumber = 0;
     let lastChapterTitle = '';
+    let startChapterNumber = 0;
+    let progressMax = expectedChapterCount;
     let stopReason = '';
     let completed = false;
 
@@ -315,13 +318,20 @@ async function scrapePage(runId, chapterLimit) {
       lastChapterNumber = getChapterNumber(chapter.title) || chapters.length;
       lastChapterTitle = formatChapterHeading(chapter.title, chapters.length);
 
+      if (!startChapterNumber) {
+        startChapterNumber = lastChapterNumber;
+        progressMax = chapterLimit && startChapterNumber
+          ? startChapterNumber + chapterLimit - 1
+          : expectedChapterCount;
+      }
+
       postProgress({
         status: '爬取中',
         currentTitle: lastChapterTitle,
         currentChapterNumber: lastChapterNumber,
         pageCount: chapter.pageCount,
         done: chapters.length,
-        max: expectedChapterCount
+        max: progressMax
       });
 
       if (chapterLimit && chapters.length >= chapterLimit) {

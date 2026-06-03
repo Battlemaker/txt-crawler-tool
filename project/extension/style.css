@@ -29,6 +29,20 @@ button:disabled {
   font-size: 12px;
 }
 
+.chapter-limit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.chapter-limit input {
+  width: 120px;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+
 .progress-panel {
   margin-bottom: 10px;
 }

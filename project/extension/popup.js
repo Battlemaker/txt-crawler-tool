@@ -1,6 +1,7 @@
 const scrapeBtn = document.getElementById('scrapeBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const chooseSavePath = document.getElementById('chooseSavePath');
+const chapterLimit = document.getElementById('chapterLimit');
 const progressPanel = document.getElementById('progressPanel');
 const progressText = document.getElementById('progressText');
 const progressPercent = document.getElementById('progressPercent');
@@ -31,6 +32,7 @@ scrapeBtn.addEventListener('click', async () => {
   downloadBtn.disabled = true;
   resetProgress();
 
+  const chapterLimitValue = getChapterLimit();
   result.textContent = '正在提取页面内容...';
 
   try {
@@ -44,7 +46,7 @@ scrapeBtn.addEventListener('click', async () => {
         tabId: tab.id
       },
       func: scrapePage,
-      args: [activeRunId]
+      args: [activeRunId, chapterLimitValue]
     });
 
     if (!res || !res.result) {
@@ -76,6 +78,16 @@ scrapeBtn.addEventListener('click', async () => {
     scrapeBtn.disabled = false;
   }
 });
+
+function getChapterLimit() {
+  const value = Number(chapterLimit.value);
+
+  if (!Number.isInteger(value) || value < 1) {
+    return 0;
+  }
+
+  return value;
+}
 
 downloadBtn.addEventListener('click', async () => {
   if (!latestBook || !latestBook.content) {
@@ -160,6 +172,10 @@ function formatPreview(data) {
     lines.push(`预计章节数：${data.expectedChapterCount}`);
   }
 
+  if (data.chapterLimit) {
+    lines.push(`本次设置爬取章节数：${data.chapterLimit}`);
+  }
+
   if (data.lastChapterTitle) {
     lines.push(`最后爬取章节：${data.lastChapterTitle}`);
   }
@@ -184,6 +200,10 @@ function formatTxt(data) {
 
   if (data.expectedChapterCount) {
     lines.push(`预计章节数：${data.expectedChapterCount}`);
+  }
+
+  if (data.chapterLimit) {
+    lines.push(`本次设置爬取章节数：${data.chapterLimit}`);
   }
 
   if (data.completed === false) {
@@ -221,7 +241,7 @@ function sanitizeFileName(name) {
     .slice(0, 120) || 'novel';
 }
 
-async function scrapePage(runId) {
+async function scrapePage(runId, chapterLimit) {
   const detailTitle = document.querySelector('.bookname');
   const readLink = document.querySelector('.btn-normal.abt2[href]');
 
@@ -247,7 +267,8 @@ async function scrapePage(runId) {
     const title = getBookName(titleEl);
     const chapterStats = getChapterStats();
     const startReadUrl = new URL(startLink.getAttribute('href'), location.href).href;
-    const expectedChapterCount = chapterStats.maxChapterNumber || 1000;
+    const detectedChapterCount = chapterStats.maxChapterNumber || 1000;
+    const expectedChapterCount = chapterLimit || detectedChapterCount;
     const maxChapters = Math.min(expectedChapterCount, 2000);
     const chapters = [];
     const visitedUrls = new Set();
@@ -303,7 +324,12 @@ async function scrapePage(runId) {
         max: expectedChapterCount
       });
 
-      if (chapterStats.maxChapterNumber && lastChapterNumber >= chapterStats.maxChapterNumber) {
+      if (chapterLimit && chapters.length >= chapterLimit) {
+        completed = true;
+        break;
+      }
+
+      if (!chapterLimit && chapterStats.maxChapterNumber && lastChapterNumber >= chapterStats.maxChapterNumber) {
         completed = true;
         break;
       }
@@ -325,6 +351,7 @@ async function scrapePage(runId) {
       type: 'novel',
       title,
       maxChapterNumber: chapterStats.maxChapterNumber,
+      chapterLimit,
       expectedChapterCount,
       chapterCount: chapters.length,
       lastChapterNumber,

@@ -1,13 +1,32 @@
 body {
   font-family: Arial, sans-serif;
-  width: 300px;
+  width: 360px;
   padding: 10px;
 }
 
 button {
   padding: 5px 10px;
-  margin-bottom: 10px;
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.save-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 12px;
 }
 
 pre {

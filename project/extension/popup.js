@@ -1,5 +1,14 @@
-document.getElementById('scrapeBtn').addEventListener('click', async () => {
-  const result = document.getElementById('result');
+const scrapeBtn = document.getElementById('scrapeBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const chooseSavePath = document.getElementById('chooseSavePath');
+const result = document.getElementById('result');
+
+let latestChapter = null;
+let latestDownloadUrl = '';
+
+scrapeBtn.addEventListener('click', async () => {
+  latestChapter = null;
+  downloadBtn.disabled = true;
 
   result.textContent = '正在提取当前章节...';
 
@@ -28,12 +37,70 @@ document.getElementById('scrapeBtn').addEventListener('click', async () => {
       return;
     }
 
+    latestChapter = data;
+    downloadBtn.disabled = !data.content;
     result.textContent =
       `标题：${data.title}\n页数：${data.pageCount}\n\n${data.content}`;
   } catch (err) {
     result.textContent = '错误：' + err.message;
   }
 });
+
+downloadBtn.addEventListener('click', async () => {
+  if (!latestChapter || !latestChapter.content) {
+    result.textContent = '请先抓取成功后再保存 TXT 文件';
+    return;
+  }
+
+  if (latestDownloadUrl) {
+    URL.revokeObjectURL(latestDownloadUrl);
+  }
+
+  const text = [
+    latestChapter.title,
+    '',
+    latestChapter.content
+  ].join('\n');
+  const blob = new Blob([text], {
+    type: 'text/plain;charset=utf-8'
+  });
+  latestDownloadUrl = URL.createObjectURL(blob);
+
+  try {
+    await downloadFile({
+      url: latestDownloadUrl,
+      filename: `${sanitizeFileName(latestChapter.title || 'chapter')}.txt`,
+      saveAs: chooseSavePath.checked
+    });
+    result.textContent =
+      `标题：${latestChapter.title}\n页数：${latestChapter.pageCount}\n\n${latestChapter.content}`;
+  } catch (err) {
+    result.textContent = '保存失败：' + err.message;
+  }
+});
+
+function downloadFile(options) {
+  return new Promise((resolve, reject) => {
+    chrome.downloads.download(options, (downloadId) => {
+      const error = chrome.runtime.lastError;
+
+      if (error) {
+        reject(new Error(error.message));
+        return;
+      }
+
+      resolve(downloadId);
+    });
+  });
+}
+
+function sanitizeFileName(name) {
+  return name
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120) || 'chapter';
+}
 
 async function scrapeCurrentChapter() {
   const maxPages = 100;

@@ -9,7 +9,14 @@
 
 <body>
   <h3>爬取当前页面文章</h3>
-  <button id="scrapeBtn">爬取文章</button>
+  <div class="toolbar">
+    <button id="scrapeBtn">爬取文章</button>
+    <button id="downloadBtn" disabled>保存 TXT</button>
+    <label class="save-option">
+      <input id="chooseSavePath" type="checkbox" checked>
+      选择保存位置
+    </label>
+  </div>
   <pre id="result"></pre>
 
   <script src="popup.js"></script>

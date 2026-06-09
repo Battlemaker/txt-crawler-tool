@@ -2,6 +2,9 @@ const scrapeBtn = document.getElementById('scrapeBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const chooseSavePath = document.getElementById('chooseSavePath');
 const chapterLimit = document.getElementById('chapterLimit');
+const startView = document.getElementById('startView');
+const progressView = document.getElementById('progressView');
+const resultView = document.getElementById('resultView');
 const progressPanel = document.getElementById('progressPanel');
 const progressText = document.getElementById('progressText');
 const progressPercent = document.getElementById('progressPercent');
@@ -30,6 +33,7 @@ scrapeBtn.addEventListener('click', async () => {
   activeRunId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   scrapeBtn.disabled = true;
   downloadBtn.disabled = true;
+  showView('progress');
   resetProgress();
 
   const chapterLimitValue = getChapterLimit();
@@ -50,6 +54,7 @@ scrapeBtn.addEventListener('click', async () => {
     });
 
     if (!res || !res.result) {
+      showView('result');
       result.textContent = '抓取失败';
       return;
     }
@@ -57,6 +62,7 @@ scrapeBtn.addEventListener('click', async () => {
     const data = res.result;
 
     if (data.error) {
+      showView('result');
       result.textContent = `抓取失败：${data.error}`;
       return;
     }
@@ -72,12 +78,20 @@ scrapeBtn.addEventListener('click', async () => {
       stopReason: data.stopReason || ''
     });
     result.textContent = formatPreview(data);
+    showView('result');
   } catch (err) {
+    showView('result');
     result.textContent = '错误：' + err.message;
   } finally {
     scrapeBtn.disabled = false;
   }
 });
+
+function showView(viewName) {
+  startView.hidden = viewName !== 'start';
+  progressView.hidden = viewName !== 'progress';
+  resultView.hidden = viewName !== 'result';
+}
 
 function getChapterLimit() {
   const value = Number(chapterLimit.value);

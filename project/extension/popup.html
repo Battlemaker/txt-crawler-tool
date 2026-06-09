@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
@@ -8,28 +8,34 @@
 </head>
 
 <body>
-  <h3>爬取小说或当前章节</h3>
-  <div class="toolbar">
-    <button id="scrapeBtn">开始爬取</button>
-    <button id="downloadBtn" disabled>保存 TXT</button>
-    <label class="save-option">
-      <input id="chooseSavePath" type="checkbox" checked>
-      选择保存位置
-    </label>
-  </div>
-  <label class="chapter-limit">
-    爬取章节数
-    <input id="chapterLimit" type="number" min="1" step="1" placeholder="留空为全部">
-  </label>
-  <div id="progressPanel" class="progress-panel" hidden>
-    <div class="progress-row">
-      <span id="progressText">准备中...</span>
-      <span id="progressPercent">0%</span>
-    </div>
-    <progress id="progressBar" value="0" max="100"></progress>
-    <div id="progressDetail" class="progress-detail"></div>
-  </div>
-  <pre id="result"></pre>
+  <main class="app-shell">
+    <section id="startView" class="view start-view">
+      <button id="scrapeBtn" class="primary-action">开始爬取</button>
+      <input id="chapterLimit" type="number" min="1" step="1" hidden>
+    </section>
+
+    <section id="progressView" class="view progress-view" hidden>
+      <div id="progressPanel" class="progress-panel">
+        <div class="progress-row">
+          <span id="progressText">准备中...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <progress id="progressBar" value="0" max="100"></progress>
+        <div id="progressDetail" class="progress-detail"></div>
+      </div>
+    </section>
+
+    <section id="resultView" class="view result-view" hidden>
+      <div class="result-actions">
+        <button id="downloadBtn" disabled>保存</button>
+        <label class="save-option">
+          <input id="chooseSavePath" type="checkbox" checked>
+          选择保存地址
+        </label>
+      </div>
+      <pre id="result"></pre>
+    </section>
+  </main>
 
   <script src="popup.js"></script>
 </body>

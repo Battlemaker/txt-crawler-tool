@@ -8,15 +8,18 @@
   --text: #e6edf3;
   --muted: #8b949e;
   --accent: #2f81f7;
-  --accent-strong: #1f6feb;
   --success: #238636;
   --success-hover: #2ea043;
   --disabled: #484f58;
-  --shadow: 0 16px 36px rgba(1, 4, 9, 0.32);
+  --shadow: 0 14px 34px rgba(1, 4, 9, 0.32);
 }
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 html,
@@ -25,12 +28,10 @@ body {
 }
 
 body {
-  width: 390px;
-  min-height: 420px;
-  padding: 16px;
+  width: 360px;
   color: var(--text);
   background:
-    linear-gradient(180deg, rgba(47, 129, 247, 0.08), transparent 150px),
+    linear-gradient(180deg, rgba(47, 129, 247, 0.08), transparent 120px),
     var(--bg);
   font-family:
     -apple-system,
@@ -43,14 +44,18 @@ body {
   line-height: 1.5;
 }
 
-h3 {
-  margin: 0 0 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  font-size: 16px;
-  font-weight: 650;
-  letter-spacing: 0;
+.app-shell {
+  padding: 14px;
+}
+
+.view {
+  width: 100%;
+}
+
+.start-view {
+  display: grid;
+  min-height: 104px;
+  place-items: center;
 }
 
 button,
@@ -95,80 +100,21 @@ button:disabled {
   opacity: 0.7;
 }
 
-#downloadBtn {
-  color: var(--text);
-  background: var(--panel-soft);
-  border-color: var(--border-strong);
-}
-
-#downloadBtn:hover:not(:disabled) {
-  background: #262c36;
-  border-color: #768390;
-}
-
-#downloadBtn:disabled {
-  color: #7d8590;
-  background: #21262d;
-  border-color: var(--border);
-}
-
-.toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.save-option {
-  grid-column: 1 / -1;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 28px;
-  color: var(--muted);
-  white-space: nowrap;
-  font-size: 12px;
-}
-
-.save-option input {
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.chapter-limit {
-  display: grid;
-  grid-template-columns: auto minmax(132px, 1fr);
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--muted);
-  background: rgba(22, 27, 34, 0.78);
-  box-shadow: var(--shadow);
-  font-size: 12px;
-}
-
-.chapter-limit input {
+.primary-action {
   width: 100%;
-  min-height: 32px;
-  padding: 5px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  color: var(--text);
-  background: #0d1117;
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 650;
 }
 
-.chapter-limit input::placeholder {
-  color: #6e7681;
+.progress-view {
+  min-height: 132px;
+  display: grid;
+  align-items: center;
 }
 
 .progress-panel {
-  margin-bottom: 12px;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
@@ -179,7 +125,7 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: var(--text);
   font-size: 12px;
 }
@@ -212,21 +158,63 @@ progress::-webkit-progress-bar {
 
 progress::-webkit-progress-value {
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent-strong), #56d364);
+  background: linear-gradient(90deg, #1f6feb, #56d364);
 }
 
 .progress-detail {
-  min-height: 16px;
-  margin-top: 8px;
+  min-height: 17px;
+  margin-top: 9px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
+.result-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#downloadBtn {
+  color: var(--text);
+  background: var(--panel-soft);
+  border-color: var(--border-strong);
+}
+
+#downloadBtn:hover:not(:disabled) {
+  background: #262c36;
+  border-color: #768390;
+}
+
+#downloadBtn:disabled {
+  color: #7d8590;
+  background: #21262d;
+  border-color: var(--border);
+}
+
+.save-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  color: var(--muted);
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.save-option input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 pre {
-  min-height: 178px;
-  max-height: 310px;
+  min-height: 260px;
+  max-height: 460px;
   margin: 0;
   padding: 12px;
   overflow: auto;
@@ -237,7 +225,6 @@ pre {
   box-shadow: var(--shadow);
   font-family:
     ui-monospace,
-    SFMono-Regular,
     SFMono-Regular,
     Consolas,
     "Liberation Mono",

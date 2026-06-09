@@ -2,6 +2,8 @@ const scrapeBtn = document.getElementById('scrapeBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const chooseSavePath = document.getElementById('chooseSavePath');
 const chapterLimit = document.getElementById('chapterLimit');
+const chapterLimitLabel = document.getElementById('chapterLimitLabel');
+const modeText = document.getElementById('modeText');
 const startView = document.getElementById('startView');
 const progressView = document.getElementById('progressView');
 const resultView = document.getElementById('resultView');
@@ -16,6 +18,8 @@ let latestBook = null;
 let latestDownloadUrl = '';
 let activeRunId = '';
 
+initializeStartView();
+
 chrome.runtime.onMessage.addListener((message) => {
   if (!message || message.type !== 'scrape-progress') {
     return;
@@ -27,6 +31,46 @@ chrome.runtime.onMessage.addListener((message) => {
 
   updateProgress(message);
 });
+
+async function initializeStartView() {
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true
+    });
+
+    const [res] = await chrome.scripting.executeScript({
+      target: {
+        tabId: tab.id
+      },
+      func: detectPageMode
+    });
+
+    applyPageMode(res && res.result ? res.result : { type: 'unknown' });
+  } catch (err) {
+    applyPageMode({ type: 'unknown' });
+  }
+}
+
+function applyPageMode(mode) {
+  if (mode.type === 'detail') {
+    modeText.textContent = '目录页：将从第一章开始爬取';
+    chapterLimitLabel.textContent = '爬取章节数';
+    chapterLimit.placeholder = '留空为全部';
+    return;
+  }
+
+  if (mode.type === 'chapter') {
+    modeText.textContent = '正文页：将从当前章节开始爬取';
+    chapterLimitLabel.textContent = '向后爬取章节数';
+    chapterLimit.placeholder = '留空为当前章';
+    return;
+  }
+
+  modeText.textContent = '当前页面：自动识别爬取起点';
+  chapterLimitLabel.textContent = '爬取章节数';
+  chapterLimit.placeholder = '留空为全部';
+}
 
 scrapeBtn.addEventListener('click', async () => {
   latestBook = null;
@@ -72,7 +116,9 @@ scrapeBtn.addEventListener('click', async () => {
     updateProgress({
       status: data.type === 'novel' && !data.completed ? '已停止' : '已完成',
       currentTitle: data.lastChapterTitle || data.title,
-      currentChapterNumber: data.lastChapterNumber || data.chapterCount || 0,
+      currentChapterNumber: data.type === 'chapter'
+        ? data.chapterCount || 0
+        : data.lastChapterNumber || data.chapterCount || 0,
       done: data.chapterCount || 0,
       max: data.expectedChapterCount || data.chapterCount || 1,
       stopReason: data.stopReason || ''
@@ -256,6 +302,49 @@ function sanitizeFileName(name) {
     .slice(0, 120) || 'novel';
 }
 
+function detectPageMode() {
+  const detailTitle = document.querySelector('.bookname');
+  const readLink = document.querySelector('.btn-normal.abt2[href]');
+
+  if (detailTitle && readLink) {
+    return { type: 'detail' };
+  }
+
+  const titleEl = document.querySelector([
+    '#chaptername',
+    '.chaptername',
+    '.bookname h1',
+    '.chapter-title',
+    '.read-title',
+    '.word_read h3',
+    '.content h1',
+    '.reader h1',
+    'h1'
+  ].join(','));
+  const contentEl = document.querySelector([
+    '#txt',
+    '#content',
+    '#chaptercontent',
+    '#chapterContent',
+    '.word_read',
+    '.txt',
+    '.chapter-content',
+    '.chapterContent',
+    '.read-content',
+    '.reader-content',
+    '.article-content',
+    '.book-content',
+    '.readbox',
+    '.reader'
+  ].join(','));
+
+  if (titleEl && contentEl) {
+    return { type: 'chapter' };
+  }
+
+  return { type: 'unknown' };
+}
+
 async function scrapePage(runId, chapterLimit) {
   const detailTitle = document.querySelector('.bookname');
   const readLink = document.querySelector('.btn-normal.abt2[href]');
@@ -264,19 +353,96 @@ async function scrapePage(runId, chapterLimit) {
     return scrapeNovelFromDetailPage(detailTitle, readLink);
   }
 
-  const chapter = await scrapeChapter(location.href, document);
+  return scrapeNovelFromChapterPage(location.href, document);
 
-  if (chapter.error) {
-    return chapter;
+  async function scrapeNovelFromChapterPage(startUrl, initialDoc) {
+    const expectedChapterCount = chapterLimit || 1;
+    const maxChapters = Math.min(expectedChapterCount, 2000);
+    const chapters = [];
+    const visitedUrls = new Set();
+
+    let currentUrl = startUrl;
+    let lastChapterNumber = 0;
+    let lastChapterTitle = '';
+    let stopReason = '';
+    let completed = false;
+
+    postProgress({
+      status: '开始爬取',
+      currentTitle: document.title,
+      done: 0,
+      max: expectedChapterCount
+    });
+
+    for (let index = 0; index < maxChapters; index += 1) {
+      if (!currentUrl) {
+        stopReason = '没有下一章链接';
+        break;
+      }
+
+      if (visitedUrls.has(currentUrl)) {
+        stopReason = `链接重复，已停止：${currentUrl}`;
+        break;
+      }
+
+      visitedUrls.add(currentUrl);
+
+      const chapter = await scrapeChapter(currentUrl, index === 0 ? initialDoc : null);
+
+      if (chapter.error) {
+        stopReason = chapter.error;
+        break;
+      }
+
+      if (!chapter.content) {
+        stopReason = `正文为空：${currentUrl}`;
+        break;
+      }
+
+      chapters.push(chapter);
+      lastChapterNumber = getChapterNumber(chapter.title) || chapters.length;
+      lastChapterTitle = formatChapterHeading(chapter.title, chapters.length);
+
+      postProgress({
+        status: '爬取中',
+        currentTitle: lastChapterTitle,
+        currentChapterNumber: chapters.length,
+        pageCount: chapter.pageCount,
+        done: chapters.length,
+        max: expectedChapterCount
+      });
+
+      if (chapters.length >= expectedChapterCount) {
+        completed = true;
+        break;
+      }
+
+      currentUrl = chapter.nextChapterUrl;
+    }
+
+    if (chapters.length === 0) {
+      return {
+        error: stopReason || '当前阅读页面未抓取到正文'
+      };
+    }
+
+    return {
+      type: 'chapter',
+      title: chapters[0].title || '无标题',
+      chapterLimit,
+      expectedChapterCount,
+      chapterCount: chapters.length,
+      lastChapterNumber,
+      lastChapterTitle,
+      completed,
+      stopReason,
+      content: chapters
+        .map((chapter, index) =>
+          `${formatChapterHeading(chapter.title, index + 1)}\n\n${chapter.content}`
+        )
+        .join('\n\n')
+    };
   }
-
-  return {
-    type: 'chapter',
-    title: chapter.title || '无标题',
-    chapterCount: 1,
-    expectedChapterCount: 1,
-    content: `${formatChapterHeading(chapter.title, 1)}\n\n${chapter.content}`
-  };
 
   async function scrapeNovelFromDetailPage(titleEl, startLink) {
     const title = getBookName(titleEl);

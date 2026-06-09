@@ -10,9 +10,10 @@
 <body>
   <main class="app-shell">
     <section id="startView" class="view start-view">
+      <div id="modeText" class="mode-text">正在识别当前页面...</div>
       <button id="scrapeBtn" class="primary-action">开始爬取</button>
       <label class="chapter-limit">
-        爬取章节数
+        <span id="chapterLimitLabel">爬取章节数</span>
         <input id="chapterLimit" type="number" min="1" step="1" placeholder="留空为全部">
       </label>
     </section>
@@ -30,7 +31,7 @@
 
     <section id="resultView" class="view result-view" hidden>
       <div class="result-actions">
-        <button id="downloadBtn" disabled>保存</button>
+        <button id="downloadBtn" disabled>保存 TXT</button>
         <label class="save-option">
           <input id="chooseSavePath" type="checkbox" checked>
           选择保存地址

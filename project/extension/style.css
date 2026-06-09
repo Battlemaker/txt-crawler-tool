@@ -55,8 +55,20 @@ body {
 .start-view {
   display: grid;
   gap: 12px;
-  min-height: 132px;
+  min-height: 156px;
   align-content: center;
+}
+
+.mode-text {
+  min-height: 30px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #79c0ff;
+  background: rgba(47, 129, 247, 0.08);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
 }
 
 button,

@@ -11,7 +11,10 @@
   <main class="app-shell">
     <section id="startView" class="view start-view">
       <button id="scrapeBtn" class="primary-action">开始爬取</button>
-      <input id="chapterLimit" type="number" min="1" step="1" hidden>
+      <label class="chapter-limit">
+        爬取章节数
+        <input id="chapterLimit" type="number" min="1" step="1" placeholder="留空为全部">
+      </label>
     </section>
 
     <section id="progressView" class="view progress-view" hidden>

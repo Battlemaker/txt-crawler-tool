@@ -54,8 +54,9 @@ body {
 
 .start-view {
   display: grid;
-  min-height: 104px;
-  place-items: center;
+  gap: 12px;
+  min-height: 132px;
+  align-content: center;
 }
 
 button,
@@ -105,6 +106,34 @@ button:disabled {
   min-height: 40px;
   font-size: 14px;
   font-weight: 650;
+}
+
+.chapter-limit {
+  display: grid;
+  grid-template-columns: auto minmax(132px, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(22, 27, 34, 0.72);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+}
+
+.chapter-limit input {
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--text);
+  background: #0d1117;
+}
+
+.chapter-limit input::placeholder {
+  color: #6e7681;
 }
 
 .progress-view {
